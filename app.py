@@ -36,20 +36,20 @@ import sys
 import os
 import subprocess
 
-try:
-    import rez as _
-except ImportError:
-    rez_path = get_rez_module_root()
-    if not rez_path:
-        raise EnvironmentError('rez is not installed and could not be automatically found. Cannot continue.')
+# try:
+#     import rez as _
+# except ImportError:
+#     rez_path = get_rez_module_root()
+#     if not rez_path:
+#         raise EnvironmentError('rez is not installed and could not be automatically found. Cannot continue.')
 
-    sys.path.append(rez_path)
-from rez.resolved_context import ResolvedContext
-cotext = ResolvedContext(['tractor','pyseq','Xlrd','XlsxWriter','pydpx_meta','pyopenexr_tk','Pillow','timecode','ffmpeg','ffmpeg_python'])
-ffmpeg_cotext = ResolvedContext(['ffmpeg'])
-module_path = cotext.get_environ()['PYTHONPATH']
-os.environ['PATH']+= (":"+ffmpeg_cotext.get_environ()['PATH'])
-set_module_path(module_path)
+#     sys.path.append(rez_path)
+# from rez.resolved_context import ResolvedContext
+# cotext = ResolvedContext(['tractor','pyseq','Xlrd','XlsxWriter','pydpx_meta','pyopenexr_tk','Pillow','timecode','ffmpeg','ffmpeg_python'])
+# ffmpeg_cotext = ResolvedContext(['ffmpeg'])
+# module_path = cotext.get_environ()['PYTHONPATH']
+# os.environ['PATH']+= (":"+ffmpeg_cotext.get_environ()['PATH'])
+# set_module_path(module_path)
 
 
 from sgtk.platform import Application

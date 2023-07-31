@@ -14,6 +14,8 @@ import sys
 import traceback
 import threading
 import subprocess
+# import yaml
+import json
 
 # by importing QT from sgtk rather than directly, we ensure that
 # the code will be compatible with both PySide and PyQt.
@@ -25,6 +27,11 @@ from .ui.dialog import Ui_Dialog
 from .util import monitor_qobject_lifetime
 from .my_tasks.my_tasks_form import MyTasksForm
 from .my_tasks.my_tasks_model import MyTasksModel
+
+import from_storenext
+# from .model.path_model import TargetPath as CopyTargetPath
+# from .model.ftp_user   import FtpUser
+from .model.comp_item_model import CompItem
 
 # There are two loggers
 # logger is shotgun logger
@@ -78,6 +85,7 @@ class AppDialog(QtGui.QWidget):
         self.createTasksForm()
 
     def btnCallback(self):
+        self.copy.Start()
         msg_box = QtGui.QMessageBox()
         msg_box.setWindowTitle("Popup Message")
         msg_box.setText("OK")
@@ -103,9 +111,30 @@ class AppDialog(QtGui.QWidget):
             logger.exception("Failed to Load my tasks, because %s \n %s"
                              % (e, traceback.format_exc()))
     
-    # def itemSelect(self,selection_detail,breadcrumb_trail):
-    def itemSelect(self):
-        print("select task item")
+    def itemSelect(self,selection_detail,breadcrumb_trail):
+        current_bundle = sgtk.platform.current_bundle()
+        context = current_bundle.context
+        self._sg = context.tank.shotgun
+        '''
+        1.Comp Task
+        '''
+        if selection_detail['entity']['content'] == "comp" or selection_detail['entity']['content'] == "test":
+            self._comp_item = CompItem(selection_detail, self._sg)
+
+        get_ftp_infi = self.get_user(self.user['id'])
+
+        item = self._comp_item.get_download_items
+        test = self.get_user(context.user['id'])
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        ftp = list()
+        ftp.append(get_ftp_infi['sg_ftp_host'])
+        ftp.append(get_ftp_infi['sg_ftp_id'])
+        ftp.append(get_ftp_infi['sg_ftp_password'])
+        self.copy = from_storenext.CopyItem(ftp,item)
+        return
+
+    def get_user(self,id):
+        return self._sg.find_one("HumanUser",[['id','is',id]],['sg_ftp_id','sg_ftp_password','sg_ftp_host'])
             
     def _build_my_tasks_model(self, project):
         """
