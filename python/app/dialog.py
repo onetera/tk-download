@@ -31,7 +31,7 @@ from .my_tasks.my_tasks_model import MyTasksModel
 import from_storenext
 # from .model.path_model import TargetPath as CopyTargetPath
 # from .model.ftp_user   import FtpUser
-from .model.comp_item_model import CompItem
+from .model.comp_item_model import CompItemRegister
 
 # There are two loggers
 # logger is shotgun logger
@@ -119,7 +119,7 @@ class AppDialog(QtGui.QWidget):
         1.Comp Task
         '''
         if selection_detail['entity']['content'] == "comp" or selection_detail['entity']['content'] == "test":
-            self._comp_item = CompItem(selection_detail, self._sg)
+            self._comp_item = CompItemRegister(selection_detail, self._sg)
 
         get_ftp_infi = self.get_user(self.user['id'])
 

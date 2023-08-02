@@ -101,7 +101,7 @@ class DownItemPath:
 '''
 Comp Task 작업에 필요한 데이터를 분리하고 관리
 '''
-class CompItem:
+class CompItemRegister:
     def __init__(self, selectItem, _sg):
         self._sg = _sg
         self._shot_id = selectItem['entity']['entity']['id']
@@ -109,13 +109,15 @@ class CompItem:
         self._all_versions = Version(self._shot_id,self._sg).vsersins
         self._org = []
         self._editor = []
+        self._src = []
         self._versions = []
         self.parser(self._all_versions)
         self.code_name = selectItem['entity']['entity']['name']
         self._download_register_items = []
-        self.get_cut_count(self._editor)
         self.register_item(self._org)
         self.register_item(self._editor)
+        self.register_item(self._src)
+
         # self.register_item(self._versions,"version")
         
     def parser(self, all_versions):
@@ -124,6 +126,8 @@ class CompItem:
                 self._org.append(ver)
             elif ver['sg_task'] == None and 'editor' in ver['code']:
                 self._editor.append(ver)
+            elif ver['sg_task'] == None and 'src' in ver['code']:
+                self._src.append(ver)
             else:
                 self._versions.append(ver)
 
@@ -134,10 +138,11 @@ class CompItem:
         return (result['sg_cut_in'],result['sg_cut_out'])
     
     def get_cut_count(self,items):
-        self.cut_count = {}
+        cut_count = {}
         for i in items:
             temp = self.get_version(i['code'])
-            self.cut_count[temp] = i['sg_cut_duration']
+            cut_count[temp] = i['sg_cut_duration']
+        return cut_count
         
     def get_version(self,str):
         pattern = r"v\d{3}"
@@ -209,17 +214,22 @@ class CompItem:
                     pass
                     # prit("gen copy")
             else:
-                #editor 버전에 sg_cut_duration이 있고, 보통 org와 1:1 이다. 
-                # 현재 만들어주는 장수를 샷에서 받아오는 부분과 비교를 하여 샷과 sg_cut_duration중 사용해야 할거같다.
+                item_name = item['sg_path_to_movie'].split("/")[-1]
+                cut_count = str()
+                if "org" in item_name:
+                    cut_count = self.get_cut_count(self._org)
+                elif "editor" in item_name:
+                    cut_count = self.get_cut_count(self._editor)
+                else:
+                    cut_count = self.get_cut_count(self._src)
+                
                 mp4 = item['sg_path_to_movie'].replace('.mov','.mp4')
                 self._download_register_items.append(DownItemPath(item['code'],mp4).item)    
                 self._download_register_items.append(DownItemPath(item['code'],item['sg_path_to_movie']).item)
-                
-                if '.dpx' in item['sg_path_to_frames'] or '.exr' in item['sg_path_to_frames']:
-                    version = self.get_version(item['code'])
-                    for frame_number in range(1, self.cut_count[version] + 1):
+                version = self.get_version(item['code'])
+                if "editor" not in item_name:
+                    for frame_number in range(1, cut_count[version] + 1):
                         new_file = item['sg_path_to_frames'].replace('%04d',str(frame_number + 1000))
-                        print(new_file)
                         self._download_register_items.append(DownItemPath(item['code'],new_file).item)
 
     @property
