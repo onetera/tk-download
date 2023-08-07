@@ -1,3 +1,5 @@
+# :coding: utf-8
+
 # Copyright (c) 2013 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
@@ -52,6 +54,11 @@ def show_dialog(app_instance):
     app_instance.engine.show_dialog("Download", app_instance, AppDialog)
 
 
+def msg_box(text):
+    msg_box = QtGui.QMessageBox()
+    msg_box.setWindowTitle("Popup Message")
+    msg_box.setText(text)
+    msg_box.exec_()
 
 class AppDialog(QtGui.QWidget):
     """
@@ -71,9 +78,27 @@ class AppDialog(QtGui.QWidget):
         ################################################################
         self.ui = Ui_Dialog() 
         self.ui.setupUi(self)
+
+        self.ui.horizontalLayout_3 = QtGui.QVBoxLayout()
+        self.ui.set_path_btn = QtGui.QPushButton("Set_Path",self)
+        self.ui.progress = QtGui.QProgressBar()
+        self.ui.line_editor = QtGui.QLineEdit()
+        
+        self.ui.horizontalLayout_3.addWidget(self.ui.line_editor)
+        self.ui.horizontalLayout_3.addWidget(self.ui.progress)
+        self.ui.horizontalLayout_3.addWidget(self.ui.set_path_btn)
+
+        #기존 다운로드 버튼보다 Set_Path버튼이 위로 올라가도록
+        self.ui.horizontalLayout_3.removeWidget(self.ui.download_btn)
+        self.ui.horizontalLayout_3.addWidget(self.ui.download_btn)
+
+        
+        self.ui.verticalLayout_2.addLayout(self.ui.horizontalLayout_3)
         ################################################################
 
         self.ui.download_btn.clicked.connect(self.btnCallback)
+        self.ui.set_path_btn.clicked.connect(self.set_path)
+        
 
         # create a background task manager for the widget to use
         self._task_manager = task_manager.BackgroundTaskManager(self,
@@ -85,11 +110,21 @@ class AppDialog(QtGui.QWidget):
         self.createTasksForm()
 
     def btnCallback(self):
-        self.copy.Start()
-        msg_box = QtGui.QMessageBox()
-        msg_box.setWindowTitle("Popup Message")
-        msg_box.setText("OK")
-        msg_box.exec_()
+        if not self.ui.line_editor.text():
+            return
+        # total_steps = 10000000
+        # for step in range(total_steps):
+        #     self.ui.progress.setValue(step + 1)
+        self.copy.Start(msg_box,self.ui.line_editor.text(),self.ui)
+        msg_box("다운로드 완료")
+
+    def set_path(self):
+        default_directory = os.path.expanduser("~")
+        file_dialog = QtGui.QFileDialog().getExistingDirectory(None,
+                                                               'Output directory',
+                                                               default_directory)
+        self.ui.line_editor.setText(file_dialog)
+        return file_dialog
 
     def createTasksForm(self):
         """

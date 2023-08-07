@@ -2,12 +2,14 @@
 
 import os
 import platform
-from ftplib import FTP
+import time
+import datetime
+from ftplib import FTP, error_temp , error_perm
+from io import StringIO
+from io import BytesIO
+from datetime import datetime
+from sgtk.platform.qt import QtCore, QtGui
 
-'''
-vender_{project_name}을 제시하고,
-verder_{project_name}/show/{project}/... 로 사용한다.
-'''
 
 class Access(FTP):
     def __init__(self, user_info):
@@ -19,9 +21,13 @@ class Access(FTP):
         hosts = user_info[0]
         username = user_info[1]
         password = user_info[2]
-        self.set_pasv(False)
+        self.set_pasv(True)
         self.login(user=username, passwd=password)
+        self._log_path = self.pwd()
 
+    @property
+    def log_path(self):
+        return self._log_path
 
 class CopyItem:
     def __init__(self, user_info, copy_item):
@@ -35,8 +41,41 @@ class CopyItem:
             if not os.path.exists(current_dir):
                 os.makedirs(current_dir)
 
-    def Start(self):
-        for i in self._copy_item:
+    def create_log_file(self,text,filename,bool=True):
+        with BytesIO(text.encode("utf-8")) as ftp_log:     
+            if bool:
+                self._ftp.storlines('APPE ' + filename, ftp_log)
+            else:
+                self._ftp.storlines('STOR ' + filename, ftp_log)
+
+    def log(self,data):
+        filename = datetime.today().strftime("%Y%m%d") + ".log"
+        self._ftp.cwd("/log")
+        file_list = []
+        self._ftp.dir("/log", file_list.append)
+        #로그파일이 하나도 없을 경우 
+        log_text = "\n".join(data)
+        if len(file_list) != 0:
+            for file in file_list:
+                if filename == file.split(" ")[-1]:
+                    existing_log = self._ftp.retrlines('RETR ' + filename)
+                    new_log_text = existing_log + "\n" + "\n".join(data)
+                    self.create_log_file(new_log_text, filename)
+                else:
+                    self.create_log_file(log_text,filename)
+        else:
+            self.create_log_file(log_text,filename,False)
+        print("Create Log file")
+        self._ftp.cwd("/")
+
+    def Start(self, func, path, ui):
+        filename = datetime.today().strftime("%Y%m%d") + ".log"
+
+        log_data = list()
+        log_data.append("=================================================")
+        log_data.append(datetime.today().strftime("%Y/%m/%d %H:%M:%S\n"))
+        
+        for index,i in enumerate(self._copy_item):
             parent_path = str()
             if "." in i.values()[0].split("/")[:-1][-1]:
                 path = i.values()[0].split("/")[:-1]
@@ -44,37 +83,37 @@ class CopyItem:
                 parent_path = "/".join(path)
             else:
                 parent_path = "/".join(i.values()[0].split("/")[:-1])
-            '''
-            /show/wedding/seq/EP01/EP01_S007_0010/plate/org/v001
-            /show/wedding/seq/EP01/EP01_S007_0010/plate/org/v002
-            /show/wedding/seq/EP01/EP01_S007_0010/plate
-            /show/wedding/seq/EP01/EP01_S007_0010/plate
-            매 경로마다 ftp경로 변경
-            '''
+
             self._ftp.cwd(parent_path)
             
-            #테스트로 다운받을 경로 지정.
-            if platform.system() == "Windows":
-                local_path = 'C:\\' + parent_path
-                relative_path = os.path.relpath(local_path, 'C:\\')
-                sub_dirs = relative_path.split(os.path.sep)
-                current_dir = 'C:\\'
-            elif platform.system() == "Linux":
-                local_path = '/storenext3/user/pipeline/minwoo' + parent_path
-                relative_path = os.path.relpath(local_path, '/storenext3/user/pipeline/minwoo')
-                sub_dirs = relative_path.split(os.path.sep)
-                current_dir = '/storenext3/user/pipeline/minwoo'
-            elif platform.system() == "Darwin":
-                pass
+            local_path = path + parent_path
+            relative_path = os.path.relpath(local_path, path)
+            sub_dirs = relative_path.split(os.path.sep)
+            current_dir = path
 
             #다운받을 폴더 생성
             self.Create_dir(sub_dirs,current_dir)
-            
+        
             check_is_file = os.path.splitext(i.values()[0])
             if len(check_is_file) != 0:
                 file_name = i.values()[0].split('/')[-1]
-                # print(os.path.join(local_path,file_name))
-                with open(os.path.join(local_path,file_name), 'wb') as save_f:
-                    print(save_f)
-                    self._ftp.retrbinary("RETR " + file_name, save_f.write, blocksize=262144)
+                try:
+                    with open(os.path.join(local_path,file_name), 'wb') as save_f:
+                        log_data.append(i.values()[0])
+                        mapped_value = round(index*(100.0 / len(self._copy_item)))
+                        ui.progress.setValue(mapped_value)
+                        self._ftp.retrbinary("RETR " + file_name, save_f.write, blocksize=262144)
+
+                except error_temp as e:
+                    print(e)
+                except error_perm as r:
+                    print("=================================================")
+                    print(r)
+                    print("=================================================")
+
+        log_data.append("=================================================")
+        
+        self.log(log_data)
+
         self._ftp.quit()
+        return 0
