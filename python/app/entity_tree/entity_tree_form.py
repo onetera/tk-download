@@ -46,7 +46,7 @@ class EntityTreeForm(QtGui.QWidget):
             self.entity = entity
 
     # Signal emitted when an entity is selected in the tree.
-    entity_selected = QtCore.Signal(object, object)# selection details, breadcrumbs
+    entity_selected = QtCore.Signal(object)# selection details, breadcrumbs
 
     # Signal emitted when the 'New Task' button is clicked.
     create_new_task = QtCore.Signal(object, object)# entity, step
@@ -71,6 +71,9 @@ class EntityTreeForm(QtGui.QWidget):
                                     filtering.
         """
         QtGui.QWidget.__init__(self, parent)
+
+        self.selected_indexes_list = []
+        self.breadcrumbs_list = []
 
         # control if step->tasks in the entity hierarchy should be collapsed when building
         # the search details.
@@ -125,6 +128,8 @@ class EntityTreeForm(QtGui.QWidget):
         self._ui.entity_tree.expanded.connect(self._on_item_expanded)
         self._ui.entity_tree.collapsed.connect(self._on_item_collapsed)
 
+        self._ui.entity_tree.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+        # self._ui.entity_tree.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self._is_resetting_model = False
 
         if entity_model:
@@ -163,6 +168,7 @@ class EntityTreeForm(QtGui.QWidget):
 
         # connect to the selection model for the tree view:
         selection_model = self._ui.entity_tree.selectionModel()
+        print(selection_model)
         if selection_model:
             selection_model.selectionChanged.connect(self._on_selection_changed)
 
@@ -213,7 +219,8 @@ class EntityTreeForm(QtGui.QWidget):
             self._ui.my_tasks_cb.setChecked(False)
             self._ui.entity_tree.model().only_show_my_tasks = False
             # Tell connected objects that the current selection is gone.
-            self.entity_selected.emit(None, [])
+            self.entity_selected.emit(None)
+            # self.entity_selected.emit(None, [])
 
     def shut_down(self):
         """
@@ -469,6 +476,7 @@ class EntityTreeForm(QtGui.QWidget):
         return {"label":label, "entity":entity, "children":children}
 
     def _on_search_changed(self, search_text):
+        self.all_selection_details = []
         """
         Slot triggered when the search text has been changed.
 
@@ -553,7 +561,8 @@ class EntityTreeForm(QtGui.QWidget):
                 # Get the selected entity details:
                 selection_details, breadcrumbs = self.get_selection()
                 # Emit a selection changed signal:
-                self.entity_selected.emit(selection_details, breadcrumbs)
+                # self.entity_selected.emit(selection_details, breadcrumbs)
+                self.entity_selected.emit(selection_details)
 
     def _update_ui(self):
         """
@@ -578,11 +587,11 @@ class EntityTreeForm(QtGui.QWidget):
 
     def _on_selection_changed(self, selected, deselected):
         """
-        Slot triggered when the selection changes due to user action
+        #     Slot triggered when the selection changes due to user action
 
-        :param selected:    QItemSelection containing any newly selected indexes
-        :param deselected:  QItemSelection containing any newly deselected indexes
-        """
+        #     :param selected:    QItemSelection containing any newly selected indexes
+        #     :param deselected:  QItemSelection containing any newly deselected indexes
+        #     """
         # As the model is being reset, the selection is getting updated constantly,
         # so ignore these selection changes.
         if self._is_resetting_model:
@@ -594,10 +603,19 @@ class EntityTreeForm(QtGui.QWidget):
         breadcrumbs = []
         item = None
         selected_indexes = selected.indexes()
+        deselected_indexes = deselected.indexes()
+
         if len(selected_indexes) == 1:
             selection_details = self._get_entity_details(selected_indexes[0])
-            breadcrumbs = self._build_breadcrumb_trail(selected_indexes[0])
             item = self._item_from_index(selected_indexes[0])
+            self.selected_indexes_list.append(selection_details)
+
+        if len(deselected_indexes) == 1:
+            print("deselected")
+            deselected_details = self._get_entity_details(deselected_indexes[0])
+            detail_index = self.selected_indexes_list.index(deselected_details)
+            self.selected_indexes_list.pop(detail_index)
+
 
         # update the UI
         self._update_ui()
@@ -610,7 +628,8 @@ class EntityTreeForm(QtGui.QWidget):
             self._entity_to_select = None
 
         # emit selection_changed signal:
-        self.entity_selected.emit(selection_details, breadcrumbs)
+        # self.entity_selected.emit(selection_details, breadcrumbs)
+        self.entity_selected.emit(self.selected_indexes_list)
 
     def _on_data_refreshed(self, modifications_made):
         """

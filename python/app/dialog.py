@@ -92,13 +92,11 @@ class AppDialog(QtGui.QWidget):
         self.ui.horizontalLayout_3.removeWidget(self.ui.download_btn)
         self.ui.horizontalLayout_3.addWidget(self.ui.download_btn)
 
-        
         self.ui.verticalLayout_2.addLayout(self.ui.horizontalLayout_3)
         ################################################################
 
         self.ui.download_btn.clicked.connect(self.btnCallback)
         self.ui.set_path_btn.clicked.connect(self.set_path)
-        
 
         # create a background task manager for the widget to use
         self._task_manager = task_manager.BackgroundTaskManager(self,
@@ -112,10 +110,8 @@ class AppDialog(QtGui.QWidget):
     def btnCallback(self):
         if not self.ui.line_editor.text():
             return
-        # total_steps = 10000000
-        # for step in range(total_steps):
-        #     self.ui.progress.setValue(step + 1)
-        self.copy.Start(msg_box,self.ui.line_editor.text(),self.ui)
+        for copy in self.copy:
+            copy.Start(msg_box,self.ui.line_editor.text(),self.ui)
         msg_box("다운로드 완료")
 
     def set_path(self):
@@ -139,33 +135,39 @@ class AppDialog(QtGui.QWidget):
                                               parent=self)
             # refresh tab
             self.ui.tasks_widget.addTab(self._my_tasks_form, "My Tasks")
+
             self._my_tasks_form.entity_selected.connect(self.itemSelect)
+            
+            # self._my_tasks_form.selectionChanged(self._on_selection_changed)
             
             
         except Exception as e:
             logger.exception("Failed to Load my tasks, because %s \n %s"
                              % (e, traceback.format_exc()))
-    
-    def itemSelect(self,selection_detail,breadcrumb_trail):
+
+
+    def itemSelect(self,selection_detail):
+        #sgtk
         current_bundle = sgtk.platform.current_bundle()
         context = current_bundle.context
         self._sg = context.tank.shotgun
-        '''
-        1.Comp Task
-        '''
-        if selection_detail['entity']['content'] == "comp" or selection_detail['entity']['content'] == "test":
-            self._comp_item = CompItemRegister(selection_detail, self._sg)
-
-        get_ftp_infi = self.get_user(self.user['id'])
-
-        item = self._comp_item.get_download_items
-        test = self.get_user(context.user['id'])
-        script_dir = os.path.dirname(os.path.abspath(__file__))
+        #get user info
+        get_ftp_info = self.get_user(self.user['id'])
+        #get ftp info
         ftp = list()
-        ftp.append(get_ftp_infi['sg_ftp_host'])
-        ftp.append(get_ftp_infi['sg_ftp_id'])
-        ftp.append(get_ftp_infi['sg_ftp_password'])
-        self.copy = from_storenext.CopyItem(ftp,item)
+        ftp.append(get_ftp_info['sg_ftp_host'])
+        ftp.append(get_ftp_info['sg_ftp_id'])
+        ftp.append(get_ftp_info['sg_ftp_password'])
+        self._comp_item = []
+        self.copy = []
+        
+        #1.Comp Task
+        for sel in selection_detail:
+            if sel['entity']['content'] == "comp" or sel['entity']['content'] == "test":
+                self._comp_item.append(CompItemRegister(sel, self._sg))
+
+        for item in self._comp_item:
+            self.copy.append(from_storenext.CopyItem(ftp,item.get_download_items))
         return
 
     def get_user(self,id):

@@ -3,20 +3,14 @@
 import re
 from .task import *
 from .version import *
-# from .path import DownItemPath
 from downitempath import *
-
-# a = A()
-
-
-
-
 
 '''
 Comp Task 작업에 필요한 데이터를 분리하고 관리
 '''
 class CompItemRegister:
     def __init__(self, selectItem, _sg):
+        print("CompItemRegister")
         self._sg = _sg
         self._shot_id = selectItem['entity']['entity']['id']
         self.frame_range = self.get_frame()
