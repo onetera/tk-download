@@ -4,6 +4,7 @@ import os
 import platform
 import time
 import datetime
+import threading
 from ftplib import FTP, error_temp , error_perm
 from io import StringIO
 from io import BytesIO
@@ -68,13 +69,16 @@ class CopyItem:
         print("Create Log file")
         self._ftp.cwd("/")
 
+    def download_file_in_thread(self, file_name, save_f):
+        self._ftp.retrbinary("RETR " + file_name, save_f.write, blocksize=262144)
+
     def Start(self, func, path, ui):
         filename = datetime.today().strftime("%Y%m%d") + ".log"
 
         log_data = list()
         log_data.append("=================================================")
         log_data.append(datetime.today().strftime("%Y/%m/%d %H:%M:%S\n"))
-        
+        threads = []
         for index,i in enumerate(self._copy_item):
             parent_path = str()
             if "." in i.values()[0].split("/")[:-1][-1]:
@@ -100,9 +104,12 @@ class CopyItem:
                 try:
                     with open(os.path.join(local_path,file_name), 'wb') as save_f:
                         log_data.append(i.values()[0])
+                        thread = threading.Thread(target=self.download_file_in_thread, args=(file_name, save_f))
+                        thread.start()
+                        # self._ftp.retrbinary("RETR " + file_name, save_f.write, blocksize=262144)
+                        thread.join()
                         mapped_value = round(index*(100.0 / len(self._copy_item)))
                         ui.progress.setValue(mapped_value)
-                        self._ftp.retrbinary("RETR " + file_name, save_f.write, blocksize=262144)
 
                 except error_temp as e:
                     print(e)
