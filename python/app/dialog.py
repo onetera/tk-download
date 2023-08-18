@@ -12,13 +12,11 @@
 
 import sgtk
 import os
-import sys
 import traceback
-import threading
-import subprocess
-# import yaml
-import json
+import host
+import down
 
+from datetime import datetime
 # by importing QT from sgtk rather than directly, we ensure that
 # the code will be compatible with both PySide and PyQt.
 from sgtk.platform.qt import QtCore, QtGui
@@ -30,9 +28,7 @@ from .util import monitor_qobject_lifetime
 from .my_tasks.my_tasks_form import MyTasksForm
 from .my_tasks.my_tasks_model import MyTasksModel
 
-import from_storenext
-# from .model.path_model import TargetPath as CopyTargetPath
-# from .model.ftp_user   import FtpUser
+# import from_storenext
 from .model.comp_item_model import CompItemRegister
 
 # There are two loggers
@@ -40,6 +36,7 @@ from .model.comp_item_model import CompItemRegister
 # _logger is a independet logger
 logger = sgtk.platform.get_logger(__name__)
 
+DEBUG = True
 
 def show_dialog(app_instance):
     """
@@ -107,13 +104,101 @@ class AppDialog(QtGui.QWidget):
 
         self.createTasksForm()
 
+        #sgtk
+        current_bundle = sgtk.platform.current_bundle()
+        context = current_bundle.context
+        self._sg = context.tank.shotgun
+        #get user info
+        self._get_ftp_info = self._get_user_ftp_info(self.user['id'])
+
+        #ftp 앱을 실행하면 host객체의 접속을 유지한다.
+        print(os.getenv("DEBUG"))        
+        if None != self._get_ftp_info:
+            print(self._get_ftp_info['sg_ftp_host'])
+            print(self._get_ftp_info['sg_ftp_id'])
+            print(self._get_ftp_info['sg_ftp_password'])
+
+        if DEBUG:
+            print("----------------------DEBUG-------------------------")
+            self._host = host.ftpHost(
+                "10.0.20.38",
+                "west_rnd",
+                "rnd2022!"
+            )
+        else:
+            self._host = host.ftpHost(
+                self._get_ftp_info['sg_ftp_host'],
+                self._get_ftp_info['sg_ftp_id'],
+                self._get_ftp_info['sg_ftp_password']
+            )
+
+    def closeEvent(self,event):
+        self._host.close()
+        print("closeEvent")
+
+    def _set_item_and_print_log(self):
+        self.item = []
+        # print("*"*100)
+        for comp in self._comp_item:
+            for down_item in comp.get_download_items:
+                self.item.append(down_item)
+                # print(down_item)
+        # print("*"*100)
+
     def btnCallback(self):
+        #test
+        # if self._host.path.exists("/log"):
+        # self._host.upload("/storenext3/user/pipeline/minwoo/log/20230817_1826.log","/log/20230817_1826.log")
+        # return
+        log_data = list()
+        log_data.append("=================================================")
+        log_data.append(datetime.today().strftime("%Y/%m/%d %H:%M:%S\n"))
+
         if not self.ui.line_editor.text():
             return
-        for copy in self.copy:
-            copy.Start(msg_box,self.ui.line_editor.text(),self.ui)
+        if None != self._comp_item:
+            self._set_item_and_print_log()
+        print("-----------------------------download start-------------------------")
+        input_path = self.ui.line_editor.text()
+        if input_path[-1] == '/':
+            input_path = input_path[:-1]
+
+        self.log_path = input_path + "/show/log"
+        self.ftp_log_path = self._host._get_log_path()
+        for i in self.item:
+            result_path = input_path + i[0]
+            directory_path, file_name = os.path.split(result_path)
+            if not os.path.exists(directory_path):
+                os.makedirs(directory_path)
+            if not os.path.exists(result_path):
+                download = down.Download(result_path,i,self._host)
+                # if download._result[1] == True:
+                log_data.append(download._result)
+        print("-----------------------------download end-------------------------")
+        log_data.append("=================================================")
+        self._ftp_log(log_data)
         msg_box("다운로드 완료")
 
+    def _ftp_log(self,item):
+        filename = datetime.today().strftime("%Y%m%d") + ".log"
+        if not os.path.exists(self.log_path):
+            os.makedirs(self.log_path)
+        log_path = os.path.join(self.log_path,filename)
+        with open(log_path, 'a') as file:
+            for log in item:
+                file.write(str(log) + '\n')
+        self._host.upload(log_path,os.path.join(self.ftp_log_path,filename))
+
+        
+
+    def itemSelect(self,selection_detail):
+        self._comp_item = []
+        self.copy = []
+        #1.Comp Task
+        for sel in selection_detail:
+            if sel['entity']['content'] == "comp" or sel['entity']['content'] == "test":
+                self._comp_item.append(CompItemRegister(sel, self._sg))
+    
     def set_path(self):
         default_directory = os.path.expanduser("~")
         file_dialog = QtGui.QFileDialog().getExistingDirectory(None,
@@ -146,31 +231,8 @@ class AppDialog(QtGui.QWidget):
                              % (e, traceback.format_exc()))
 
 
-    def itemSelect(self,selection_detail):
-        #sgtk
-        current_bundle = sgtk.platform.current_bundle()
-        context = current_bundle.context
-        self._sg = context.tank.shotgun
-        #get user info
-        get_ftp_info = self.get_user(self.user['id'])
-        #get ftp info
-        ftp = list()
-        ftp.append(get_ftp_info['sg_ftp_host'])
-        ftp.append(get_ftp_info['sg_ftp_id'])
-        ftp.append(get_ftp_info['sg_ftp_password'])
-        self._comp_item = []
-        self.copy = []
-        
-        #1.Comp Task
-        for sel in selection_detail:
-            if sel['entity']['content'] == "comp" or sel['entity']['content'] == "test":
-                self._comp_item.append(CompItemRegister(sel, self._sg))
 
-        for item in self._comp_item:
-            self.copy.append(from_storenext.CopyItem(ftp,item.get_download_items))
-        return
-
-    def get_user(self,id):
+    def _get_user_ftp_info(self,id):
         return self._sg.find_one("HumanUser",[['id','is',id]],['sg_ftp_id','sg_ftp_password','sg_ftp_host'])
             
     def _build_my_tasks_model(self, project):
