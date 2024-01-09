@@ -15,6 +15,8 @@ import os
 import traceback
 import host
 import down
+from pprint import pprint
+import socket
 
 from datetime import datetime
 # by importing QT from sgtk rather than directly, we ensure that
@@ -76,20 +78,6 @@ class AppDialog(QtGui.QWidget):
         self.ui = Ui_Dialog() 
         self.ui.setupUi(self)
 
-        self.ui.horizontalLayout_3 = QtGui.QVBoxLayout()
-        self.ui.set_path_btn = QtGui.QPushButton("Set_Path",self)
-        self.ui.progress = QtGui.QProgressBar()
-        self.ui.line_editor = QtGui.QLineEdit()
-        
-        self.ui.horizontalLayout_3.addWidget(self.ui.line_editor)
-        self.ui.horizontalLayout_3.addWidget(self.ui.progress)
-        self.ui.horizontalLayout_3.addWidget(self.ui.set_path_btn)
-
-        #기존 다운로드 버튼보다 Set_Path버튼이 위로 올라가도록
-        self.ui.horizontalLayout_3.removeWidget(self.ui.download_btn)
-        self.ui.horizontalLayout_3.addWidget(self.ui.download_btn)
-
-        self.ui.verticalLayout_2.addLayout(self.ui.horizontalLayout_3)
         ################################################################
 
         self.ui.download_btn.clicked.connect(self.btnCallback)
@@ -118,10 +106,15 @@ class AppDialog(QtGui.QWidget):
             print(self._get_ftp_info['sg_ftp_id'])
             print(self._get_ftp_info['sg_ftp_password'])
 
+        if os.getenv( 'WW_LOCATION' ) == 'vietnam' :
+            ftp_ip = '220.127.148.3'
+        else:
+            ftp_ip = '10.0.20.38'
+
         if DEBUG:
             print("----------------------DEBUG-------------------------")
             self._host = host.ftpHost(
-                "10.0.20.38",
+                ftp_ip,
                 "west_rnd",
                 "rnd2022!"
             )
@@ -154,22 +147,45 @@ class AppDialog(QtGui.QWidget):
         log_data.append("=================================================")
         log_data.append(datetime.today().strftime("%Y/%m/%d %H:%M:%S\n"))
 
-        if not self.ui.line_editor.text():
+        if not self.ui.path_edt.text():
             return
-        if None != self._comp_item:
+
+
+
+        if self._comp_item:
             self._set_item_and_print_log()
         print("-----------------------------download start-------------------------")
-        input_path = self.ui.line_editor.text()
+
+
+
+        input_path = self.ui.path_edt.text()
         if input_path[-1] == '/':
             input_path = input_path[:-1]
 
         self.log_path = input_path + "/show/log"
         self.ftp_log_path = self._host._get_log_path()
+
+
+
+
         for i in self.item:
             result_path = input_path + i[0]
             directory_path, file_name = os.path.split(result_path)
+
+            print( '\n' )
+            print( '*'*50 )
+            print( ' i : ' , i )
+            print( 'input_path : ' , input_path )
+            print( 'result_path : ' , result_path )
+            print( 'directory path : ' , directory_path )
+            print( 'file name : ' , file_name )
+            print( '*'*50 )
+            print( '\n' )
+            
+
             if not os.path.exists(directory_path):
                 os.makedirs(directory_path)
+
             if not os.path.exists(result_path):
                 download = down.Download(result_path,i,self._host)
                 # if download._result[1] == True:
@@ -195,6 +211,13 @@ class AppDialog(QtGui.QWidget):
         self._comp_item = []
         self.copy = []
         #1.Comp Task
+
+        print( '\n' )
+        print( '== item select ==' )
+        pprint( selection_detail )
+        print( '\n' )
+
+
         for sel in selection_detail:
             if sel['entity']['content'] == "comp" or sel['entity']['content'] == "test":
                 self._comp_item.append(CompItemRegister(sel, self._sg))
@@ -204,7 +227,7 @@ class AppDialog(QtGui.QWidget):
         file_dialog = QtGui.QFileDialog().getExistingDirectory(None,
                                                                'Output directory',
                                                                default_directory)
-        self.ui.line_editor.setText(file_dialog)
+        self.ui.path_edt.setText(file_dialog)
         return file_dialog
 
     def createTasksForm(self):
