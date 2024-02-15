@@ -35,14 +35,14 @@ class Ui_Dialog(object):
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
 
-        self.path_edt = QtGui.QLineEdit(  )
-        self.set_path_btn = QtGui.QPushButton('Set Path' )
-        self.path_edt.setMinimumHeight( 30 )
-        self.set_path_btn.setMinimumHeight( 30 )
+        #self.path_edt = QtGui.QLineEdit(  )
+        #self.set_path_btn = QtGui.QPushButton('Set Path' )
+        #self.path_edt.setMinimumHeight( 30 )
+        #self.set_path_btn.setMinimumHeight( 30 )
 
-        path_lay = QtGui.QHBoxLayout()
-        path_lay.addWidget( self.path_edt )
-        path_lay.addWidget( self.set_path_btn )
+#        path_lay = QtGui.QHBoxLayout()
+#        path_lay.addWidget( self.path_edt )
+#        path_lay.addWidget( self.set_path_btn )
 
         self.download_btn = QtGui.QPushButton(Dialog)
         self.download_btn.setObjectName("download_btn")
@@ -51,7 +51,7 @@ class Ui_Dialog(object):
 
         self.progress = QtGui.QProgressBar()
 
-        self.verticalLayout_2.addLayout( path_lay )
+        #self.verticalLayout_2.addLayout( path_lay )
         self.verticalLayout_2.addWidget( self.progress  )
         self.verticalLayout_2.addWidget( self.download_btn )
         self.verticalLayout_2.setStretch(0, 10)

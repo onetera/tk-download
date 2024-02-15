@@ -43,8 +43,8 @@ supported_engines:
 requires_shotgun_fields:
 
 # More verbose description of this item
-display_name: "OFG Timecard"
-description: "Timecard App for Ohio Film Group"
+display_name: "Download"
+description: "Downloading source and plate data for vietnam crew"
 
 # Required minimum versions for this item to run
 requires_shotgun_version:

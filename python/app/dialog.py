@@ -17,6 +17,7 @@ import host
 import down
 from pprint import pprint
 import socket
+import sys
 
 from datetime import datetime
 # by importing QT from sgtk rather than directly, we ensure that
@@ -81,7 +82,7 @@ class AppDialog(QtGui.QWidget):
         ################################################################
 
         self.ui.download_btn.clicked.connect(self.btnCallback)
-        self.ui.set_path_btn.clicked.connect(self.set_path)
+        #self.ui.set_path_btn.clicked.connect(self.set_path)
 
         # create a background task manager for the widget to use
         self._task_manager = task_manager.BackgroundTaskManager(self,
@@ -96,12 +97,13 @@ class AppDialog(QtGui.QWidget):
         current_bundle = sgtk.platform.current_bundle()
         context = current_bundle.context
         self._sg = context.tank.shotgun
+
         #get user info
         self._get_ftp_info = self._get_user_ftp_info(self.user['id'])
 
         #ftp 앱을 실행하면 host객체의 접속을 유지한다.
         print(os.getenv("DEBUG"))        
-        if None != self._get_ftp_info:
+        if self._get_ftp_info:
             print(self._get_ftp_info['sg_ftp_host'])
             print(self._get_ftp_info['sg_ftp_id'])
             print(self._get_ftp_info['sg_ftp_password'])
@@ -147,8 +149,8 @@ class AppDialog(QtGui.QWidget):
         log_data.append("=================================================")
         log_data.append(datetime.today().strftime("%Y/%m/%d %H:%M:%S\n"))
 
-        if not self.ui.path_edt.text():
-            return
+#        if not self.ui.path_edt.text():
+#            return
 
 
 
@@ -157,12 +159,15 @@ class AppDialog(QtGui.QWidget):
         print("-----------------------------download start-------------------------")
 
 
+        ## set path를 사용 하지 않고 강제로 다운로드 경로 생성
+        input_path = os.path.expanduser( '~' )
+#        input_path = self.ui.path_edt.text()
+#        if input_path[-1] == '/':
+#            input_path = input_path[:-1]
 
-        input_path = self.ui.path_edt.text()
-        if input_path[-1] == '/':
-            input_path = input_path[:-1]
-
-        self.log_path = input_path + "/show/log"
+        self.log_path = os.path.join( 
+                                input_path,  'show', "log"
+        )
         self.ftp_log_path = self._host._get_log_path()
 
 
@@ -193,7 +198,7 @@ class AppDialog(QtGui.QWidget):
         print("-----------------------------download end-------------------------")
         log_data.append("=================================================")
         self._ftp_log(log_data)
-        msg_box("다운로드 완료")
+        msg_box("Finished to download")
 
     def _ftp_log(self,item):
         filename = datetime.today().strftime("%Y%m%d") + ".log"
@@ -222,13 +227,13 @@ class AppDialog(QtGui.QWidget):
             if sel['entity']['content'] == "comp" or sel['entity']['content'] == "test":
                 self._comp_item.append(CompItemRegister(sel, self._sg))
     
-    def set_path(self):
-        default_directory = os.path.expanduser("~")
-        file_dialog = QtGui.QFileDialog().getExistingDirectory(None,
-                                                               'Output directory',
-                                                               default_directory)
-        self.ui.path_edt.setText(file_dialog)
-        return file_dialog
+#    def set_path(self):
+#        default_directory = os.path.expanduser("~")
+#        file_dialog = QtGui.QFileDialog().getExistingDirectory(None,
+#                                                               'Output directory',
+#                                                               default_directory)
+#        self.ui.path_edt.setText(file_dialog)
+#        return file_dialog
 
     def createTasksForm(self):
         """
