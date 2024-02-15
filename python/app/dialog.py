@@ -113,7 +113,7 @@ class AppDialog(QtGui.QWidget):
         else:
             ftp_ip = '10.0.20.38'
 
-        if DEBUG:
+        if ftp_ip == '10.0.20.38':
             print("----------------------DEBUG-------------------------")
             self._host = host.ftpHost(
                 ftp_ip,
