@@ -116,7 +116,7 @@ class AppDialog(QtGui.QWidget):
         if ftp_ip == '10.0.20.38':
             print("----------------------DEBUG-------------------------")
             self._host = host.ftpHost(
-                ftp_ip,
+                '10.0.20.38',
                 "west_rnd",
                 "rnd2022!"
             )
@@ -198,7 +198,8 @@ class AppDialog(QtGui.QWidget):
         print("-----------------------------download end-------------------------")
         log_data.append("=================================================")
         self._ftp_log(log_data)
-        msg_box("Finished to download")
+        msg_box = QtGui.QMessageBox.information( self, 'Download', 'Finished to download' )
+
 
     def _ftp_log(self,item):
         filename = datetime.today().strftime("%Y%m%d") + ".log"

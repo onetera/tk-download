@@ -49,10 +49,10 @@ class Ui_Dialog(object):
         self.download_btn.setMinimumHeight( 35 )
         #self.horizontalLayout_2.addWidget(self.download_btn)
 
-        self.progress = QtGui.QProgressBar()
+        #self.progress = QtGui.QProgressBar()
 
         #self.verticalLayout_2.addLayout( path_lay )
-        self.verticalLayout_2.addWidget( self.progress  )
+        #self.verticalLayout_2.addWidget( self.progress  )
         self.verticalLayout_2.addWidget( self.download_btn )
         self.verticalLayout_2.setStretch(0, 10)
 
