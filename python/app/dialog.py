@@ -54,12 +54,6 @@ def show_dialog(app_instance):
     app_instance.engine.show_dialog("Download", app_instance, AppDialog)
 
 
-def msg_box(text):
-    msg_box = QtGui.QMessageBox()
-    msg_box.setWindowTitle("Popup Message")
-    msg_box.setText(text)
-    msg_box.exec_()
-
 class AppDialog(QtGui.QWidget):
     """
     Main application dialog window
