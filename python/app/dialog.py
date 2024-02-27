@@ -185,7 +185,7 @@ class AppDialog(QtGui.QWidget):
             if not os.path.exists(directory_path):
                 os.makedirs(directory_path)
 
-            if not os.path.exists(result_path):
+            if not os.path.exists(result_path) and self._host.path.exists(i[0]):
                 download = down.Download(result_path,i,self._host)
                 # if download._result[1] == True:
                 log_data.append(download._result)
