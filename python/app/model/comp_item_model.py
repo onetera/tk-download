@@ -74,7 +74,8 @@ class CompItemRegister:
                 elif item['sg_task']['name'] == "gen":
                     pass
             else:
-                item_name = item['sg_path_to_movie'].split("/")[-1]
+                item_name = item['sg_path_to_frames'].split("/")[-1]
+                # item_name = item['sg_path_to_movie'].split("/")[-1]
                 cut_count = str()
                 if "org" in item_name:
                     cut_count = self.get_cut_count(self._org)
@@ -83,9 +84,9 @@ class CompItemRegister:
                 else:
                     cut_count = self.get_cut_count(self._src)
                 
-                mp4 = item['sg_path_to_movie'].replace('.mov','.mp4')
-                self._download_register_items.append(DownItemPath(item['code'],mp4).item)    
-                self._download_register_items.append(DownItemPath(item['code'],item['sg_path_to_movie']).item)
+                # mp4 = item['sg_path_to_movie'].replace('.mov','.mp4')
+                # self._download_register_items.append(DownItemPath(item['code'],mp4).item)    
+                # self._download_register_items.append(DownItemPath(item['code'],item['sg_path_to_movie']).item)
                 version = self.get_version(item['code'])
                 if "editor" not in item_name:
                     for frame_number in range(1, cut_count[version] + 1):
