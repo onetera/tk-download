@@ -96,30 +96,45 @@ class AppDialog(QtGui.QWidget):
         self._get_ftp_info = self._get_user_ftp_info(self.user['id'])
 
         #ftp 앱을 실행하면 host객체의 접속을 유지한다.
-        print(os.getenv("DEBUG"))        
-        if self._get_ftp_info:
-            print(self._get_ftp_info['sg_ftp_host'])
-            print(self._get_ftp_info['sg_ftp_id'])
-            print(self._get_ftp_info['sg_ftp_password'])
-
+        print(os.getenv("DEBUG"))
         if os.getenv( 'WW_LOCATION' ) == 'vietnam' :
-            ftp_ip = '220.127.148.3'
+            print("----------------------WW_LOCATION-------------------------")
+            print(os.getenv('WW_LOCATION'))
+            self._host = host.ftpHost(
+                '220.127.148.3',
+                'west_rnd',
+                'rnd2022!'
+            )
         else:
-            ftp_ip = '10.0.20.38'
-
-        if ftp_ip == '10.0.20.38':
             print("----------------------DEBUG-------------------------")
             self._host = host.ftpHost(
                 '10.0.20.38',
-                "west_rnd",
-                "rnd2022!"
+                'west_rnd',
+                'rnd2022!'
             )
-        else:
-            self._host = host.ftpHost(
-                self._get_ftp_info['sg_ftp_host'],
-                self._get_ftp_info['sg_ftp_id'],
-                self._get_ftp_info['sg_ftp_password']
-            )
+        # if self._get_ftp_info:
+        #     print(self._get_ftp_info['sg_ftp_host'])
+        #     print(self._get_ftp_info['sg_ftp_id'])
+        #     print(self._get_ftp_info['sg_ftp_password'])
+
+        # if os.getenv( 'WW_LOCATION' ) == 'vietnam' :
+        #     ftp_ip = '220.127.148.3'
+        # else:
+        #     ftp_ip = '10.0.20.38'
+
+        # if ftp_ip == '10.0.20.38':
+        #     print("----------------------DEBUG-------------------------")
+        #     self._host = host.ftpHost(
+        #         '10.0.20.38',
+        #         "west_rnd",
+        #         "rnd2022!"
+        #     )
+        # else:
+        #     self._host = host.ftpHost(
+        #         self._get_ftp_info['sg_ftp_host'],
+        #         self._get_ftp_info['sg_ftp_id'],
+        #         self._get_ftp_info['sg_ftp_password']
+        #     )
 
     def closeEvent(self,event):
         self._host.close()
@@ -166,33 +181,41 @@ class AppDialog(QtGui.QWidget):
 
 
 
+        if len(self.item) > 0:
+            for i in self.item:
+                result_path = input_path + i[0]
+                directory_path, file_name = os.path.split(result_path)
 
-        for i in self.item:
-            result_path = input_path + i[0]
-            directory_path, file_name = os.path.split(result_path)
+                print( '\n' )
+                print( '*'*50 )
+                print( ' i : ' , i )
+                print( 'input_path : ' , input_path )
+                print( 'result_path : ' , result_path )
+                print( 'directory path : ' , directory_path )
+                print( 'file name : ' , file_name )
+                print( '*'*50 )
+                print( '\n' )
+                
 
-            print( '\n' )
-            print( '*'*50 )
-            print( ' i : ' , i )
-            print( 'input_path : ' , input_path )
-            print( 'result_path : ' , result_path )
-            print( 'directory path : ' , directory_path )
-            print( 'file name : ' , file_name )
-            print( '*'*50 )
-            print( '\n' )
-            
+                if not os.path.exists(directory_path):
+                    os.makedirs(directory_path)
 
-            if not os.path.exists(directory_path):
-                os.makedirs(directory_path)
+                if not os.path.exists(result_path) and self._host.path.exists(i[0]):
+                    download = down.Download(result_path,i,self._host)
+                    # if download._result[1] == True:
+                    log_data.append(download._result)
+                elif not self._host.path.exists(i[0]):
+                    log_data.append('FTP Path is not exists.')
+                    self.msg_box( 'error', 'Ftp Download Error', 'FTP Path is not exists.' )
+        
+        else:
+            log_data.append('This task has not "org" or "src" type shots.')
+            self.msg_box( 'error', 'Shot Type Error', 'This task has not "org" or "src" type shots.')
 
-            if not os.path.exists(result_path) and self._host.path.exists(i[0]):
-                download = down.Download(result_path,i,self._host)
-                # if download._result[1] == True:
-                log_data.append(download._result)
         print("-----------------------------download end-------------------------")
         log_data.append("=================================================")
         self._ftp_log(log_data)
-        msg_box = QtGui.QMessageBox.information( self, 'Download', 'Finished to download' )
+        self.msg_box( 'info', 'Download', 'Finished to download' )
 
 
     def _ftp_log(self,item):
@@ -284,3 +307,17 @@ class AppDialog(QtGui.QWidget):
         model.async_refresh()
         logger.debug("Tasks Model Build Finished")
         return model
+
+    def msg_box( self, msg_type, title, message ):
+        msg = QtGui.QMessageBox
+        
+        if msg_type == 'info':
+            msg = msg.information( self, title, message )
+
+        if msg_type == 'error':
+            msg = msg.critical( self, title, message)
+
+        if msg_type == 'warning':
+            msg = msg.warning( self, title, message)
+
+        return msg
