@@ -96,30 +96,45 @@ class AppDialog(QtGui.QWidget):
         self._get_ftp_info = self._get_user_ftp_info(self.user['id'])
 
         #ftp 앱을 실행하면 host객체의 접속을 유지한다.
-        print(os.getenv("DEBUG"))        
-        if self._get_ftp_info:
-            print(self._get_ftp_info['sg_ftp_host'])
-            print(self._get_ftp_info['sg_ftp_id'])
-            print(self._get_ftp_info['sg_ftp_password'])
-
+        print(os.getenv("DEBUG"))
         if os.getenv( 'WW_LOCATION' ) == 'vietnam' :
-            ftp_ip = '220.127.148.3'
+            print("----------------------WW_LOCATION-------------------------")
+            print(os.getenv('WW_LOCATION'))
+            self._host = host.ftpHost(
+                '220.127.148.3',
+                'west_rnd',
+                'rnd2022!'
+            )
         else:
-            ftp_ip = '10.0.20.38'
-
-        if ftp_ip == '10.0.20.38':
             print("----------------------DEBUG-------------------------")
             self._host = host.ftpHost(
                 '10.0.20.38',
-                "west_rnd",
-                "rnd2022!"
+                'west_rnd',
+                'rnd2022!'
             )
-        else:
-            self._host = host.ftpHost(
-                self._get_ftp_info['sg_ftp_host'],
-                self._get_ftp_info['sg_ftp_id'],
-                self._get_ftp_info['sg_ftp_password']
-            )
+        # if self._get_ftp_info:
+        #     print(self._get_ftp_info['sg_ftp_host'])
+        #     print(self._get_ftp_info['sg_ftp_id'])
+        #     print(self._get_ftp_info['sg_ftp_password'])
+
+        # if os.getenv( 'WW_LOCATION' ) == 'vietnam' :
+        #     ftp_ip = '220.127.148.3'
+        # else:
+        #     ftp_ip = '10.0.20.38'
+
+        # if ftp_ip == '10.0.20.38':
+        #     print("----------------------DEBUG-------------------------")
+        #     self._host = host.ftpHost(
+        #         '10.0.20.38',
+        #         "west_rnd",
+        #         "rnd2022!"
+        #     )
+        # else:
+        #     self._host = host.ftpHost(
+        #         self._get_ftp_info['sg_ftp_host'],
+        #         self._get_ftp_info['sg_ftp_id'],
+        #         self._get_ftp_info['sg_ftp_password']
+        #     )
 
     def closeEvent(self,event):
         self._host.close()
@@ -195,7 +210,7 @@ class AppDialog(QtGui.QWidget):
         
         else:
             log_data.append('This task has not "org" or "src" type shots.')
-            self.msg_box( 'error', 'Shot Error', 'This task has not "org" or "src" type shots.')
+            self.msg_box( 'error', 'Shot Type Error', 'This task has not "org" or "src" type shots.')
 
         print("-----------------------------download end-------------------------")
         log_data.append("=================================================")
