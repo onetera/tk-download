@@ -34,7 +34,7 @@ class ftpHost(ftputil.FTPHost):
         self._root = self.getcwd()
 
     def _down(self, src, dest):
-        self.download(src, dest)
+        self.download(src, dest, mode='b')
         print(src, " ===>>> COPY ===>>> ", dest)
 
 
