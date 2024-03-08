@@ -240,9 +240,10 @@ class AppDialog(QtGui.QWidget):
         pprint( selection_detail )
         print( '\n' )
 
+        task_name_list = ['comp', 'test', 'remove', 'roto']
 
         for sel in selection_detail:
-            if sel['entity']['content'] == "comp" or sel['entity']['content'] == "test":
+            if sel['entity']['content'] in task_name_list:
                 self._comp_item.append(CompItemRegister(sel, self._sg))
     
 #    def set_path(self):
