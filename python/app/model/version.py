@@ -11,7 +11,7 @@ class Version:
         version_types = ['org', 'src', 'editor']
 
         for version_type in version_types:
-            last_version = _sg.find_one(
+            versions = _sg.find(
                 "Version",
                 filters=[["entity", "is", {"type": "Shot", "id": id}],
                     [ 'sg_version_type', 'is', version_type ]
@@ -27,8 +27,9 @@ class Version:
                         {'field_name':'id','direction':'desc'}
                     ]
             )
-            if last_version is not None:
-                self._versions.append(last_version)        
+            for ver in versions:
+                if ver is not None:
+                    self._versions.append(ver)        
 
         # filters = [
         #     ["entity", "is", {"type": "Shot", "id": id}]
