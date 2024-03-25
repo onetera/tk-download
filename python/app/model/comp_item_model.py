@@ -92,6 +92,8 @@ class CompItemRegister:
                     for frame_number in range(1, cut_count[version] + 1):
                         new_file = item['sg_path_to_frames'].replace('%04d',str(frame_number + 1000))
                         self._download_register_items.append(DownItemPath(item['code'],new_file).item)
+                else:
+                    self._download_register_items.append(DownItemPath(item['code'],item['sg_path_to_movie']).item)
 
     @property
     def get_download_items(self):
