@@ -128,8 +128,8 @@ class EntityTreeForm(QtGui.QWidget):
         self._ui.entity_tree.expanded.connect(self._on_item_expanded)
         self._ui.entity_tree.collapsed.connect(self._on_item_collapsed)
 
-        self._ui.entity_tree.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
-        # self._ui.entity_tree.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        # self._ui.entity_tree.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+        self._ui.entity_tree.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self._is_resetting_model = False
 
         if entity_model:
@@ -571,9 +571,12 @@ class EntityTreeForm(QtGui.QWidget):
         enable_new_tasks = False
 
         selected_indexes = self._ui.entity_tree.selectionModel().selectedIndexes()
-        if len(selected_indexes) == 1:
-            item = self._item_from_index(selected_indexes[0])
-            entity_model = get_source_model(selected_indexes[0].model())
+        for selected_index in selected_indexes:
+            item = self._item_from_index(selected_index)
+            entity_model = get_source_model(selected_index.model())
+        # if len(selected_indexes) == 1:
+        #     item = self._item_from_index(selected_indexes[0])
+        #     entity_model = get_source_model(selected_indexes[0].model())
             if item and entity_model:
                 entity = entity_model.get_entity(item)
                 if entity and entity["type"] != "Step":
@@ -605,16 +608,27 @@ class EntityTreeForm(QtGui.QWidget):
         selected_indexes = selected.indexes()
         deselected_indexes = deselected.indexes()
 
-        if len(selected_indexes) == 1:
-            selection_details = self._get_entity_details(selected_indexes[0])
-            item = self._item_from_index(selected_indexes[0])
+        for selected_index in selected_indexes:
+            selection_details = self._get_entity_details(selected_index)
+            item = self._item_from_index(selected_index)
             self.selected_indexes_list.append(selection_details)
 
-        if len(deselected_indexes) == 1:
-            print("deselected")
-            deselected_details = self._get_entity_details(deselected_indexes[0])
+        # if len(selected_indexes) == 1:
+        #     selection_details = self._get_entity_details(selected_indexes[0])
+        #     item = self._item_from_index(selected_indexes[0])
+        #     self.selected_indexes_list.append(selection_details)
+
+        for idx, deselected_index in enumerate(deselected_indexes):
+            print("{} index deselected".format(idx + 1))
+            deselected_details = self._get_entity_details(deselected_index)
             detail_index = self.selected_indexes_list.index(deselected_details)
             self.selected_indexes_list.pop(detail_index)
+
+        # if len(deselected_indexes) == 1:
+        #     print("deselected")
+        #     deselected_details = self._get_entity_details(deselected_indexes[0])
+        #     detail_index = self.selected_indexes_list.index(deselected_details)
+        #     self.selected_indexes_list.pop(detail_index)
 
 
         # update the UI
@@ -776,28 +790,30 @@ class EntityTreeForm(QtGui.QWidget):
             return
 
         # extract the selected model index from the selection:
-        src_index = map_to_source(selected_indexes[0])
+        for selected_index in selected_indexes:
+            src_index = map_to_source(selected_index)
+            # src_index = map_to_source(selected_indexes[0])
 
-        # determine the currently selected entity:
-        entity_model = src_index.model()
-        entity_item = entity_model.itemFromIndex(src_index)
-        entity = entity_model.get_entity(entity_item)
-        if not entity:
-            return
-
-        if entity["type"] == "Step":
-            # can't create tasks on steps as we don't have an entity!
-            return
-
-        step = None
-        if entity["type"] == "Task":
-            step = entity.get("step")
-            entity = entity.get("entity")
+            # determine the currently selected entity:
+            entity_model = src_index.model()
+            entity_item = entity_model.itemFromIndex(src_index)
+            entity = entity_model.get_entity(entity_item)
             if not entity:
                 return
 
-        # and emit the signal for this entity:
-        self.create_new_task.emit(entity, step)
+            if entity["type"] == "Step":
+                # can't create tasks on steps as we don't have an entity!
+                return
+
+            step = None
+            if entity["type"] == "Task":
+                step = entity.get("step")
+                entity = entity.get("entity")
+                if not entity:
+                    return
+
+            # and emit the signal for this entity:
+            self.create_new_task.emit(entity, step)
 
     def _build_breadcrumb_trail(self, idx):
         """

@@ -205,8 +205,11 @@ class AppDialog(QtGui.QWidget):
                     # if download._result[1] == True:
                     log_data.append(download._result)
                 elif not self._host.path.exists(i[0]):
+                    pure_file_name = file_name.split('.')[0]
+                    
                     log_data.append('FTP Path is not exists.')
-                    self.msg_box( 'error', 'Ftp Download Error', 'FTP Path is not exists.' )
+                    self.msg_box( 'error', 'Ftp Download Error', 'FTP Path is not exists.\n file name : {}'.format(pure_file_name) )
+                    return
         
         else:
             log_data.append('This task has not "org" or "src" type shots.')
