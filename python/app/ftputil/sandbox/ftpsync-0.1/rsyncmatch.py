@@ -420,9 +420,9 @@ def print_matches():
     for dir in args:
         ls = gl.recurse(dir)
     
-        print "List of include files below %s:" % dir
+        print("List of include files below %s:" % dir)
         for x in ls:
-            print "   " + x
+            print("   " + x)
 
 
 def _test():

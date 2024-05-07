@@ -44,9 +44,9 @@ import ftputil
 
 def login_data():
     """Get host, user, password and return them as a triple."""
-    print "Please enter login data:"
-    remote_host = raw_input("Remote host: ")
-    user = raw_input("User name: ")
+    print("Please enter login data:")
+    remote_host =(input("Remote host: "))
+    user =(input("User name: "))
     password = getpass.getpass("Password: ")
     print
     #return "localhost", 'ftptest', 'd605581757de5eb56d568a4419f4126e'
@@ -76,16 +76,16 @@ for i in range(500):
     local_data_file = open("local_data", "rb")
     local_data = local_data_file.read()
     local_data_file.close()
-    print "File %3d (length %4d) is" % ((i+1), len(data)),
+    print("File %3d (length %4d) is" % ((i+1), len(data)))
     if data == local_data:
-        print "ok"
+        print("ok")
         passed += 1
     else:
-        print "NOT OK"
+        print("NOT OK")
         failed += 1
 
 host.remove("remote_data")
 host.close()
 
-print "\n%d tests passed, %d tests failed" % (passed, failed)
+print("\n%d tests passed, %d tests failed" % (passed, failed))
 

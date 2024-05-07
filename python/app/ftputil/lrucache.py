@@ -145,13 +145,13 @@ class LRUCache(object):
         return len(self.__heap)
 
     def __contains__(self, key):
-        return self.__dict.has_key(key)
+        return key in self.__dict
 
     def __setitem__(self, key, obj):
         if self.size == 0:
             # can't store anything
             return
-        if self.__dict.has_key(key):
+        if key in self.__dict:
             node = self.__dict[key]
             # update node object in-place
             node.obj = obj
@@ -172,7 +172,7 @@ class LRUCache(object):
             heappush(self.__heap, node)
 
     def __getitem__(self, key):
-        if not self.__dict.has_key(key):
+        if key not in self.__dict:
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
@@ -183,7 +183,7 @@ class LRUCache(object):
             return node.obj
 
     def __delitem__(self, key):
-        if not self.__dict.has_key(key):
+        if key not in self.__dict:
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
@@ -224,21 +224,21 @@ class LRUCache(object):
 
 if __name__ == "__main__":
     cache = LRUCache(25)
-    print cache
+    print(cache)
     for i in range(50):
         cache[i] = str(i)
-    print cache
+    print(cache)
     if 46 in cache:
         del cache[46]
-    print cache
+    print(cache)
     cache.size = 10
-    print cache
+    print(cache)
     cache[46] = '46'
-    print cache
-    print len(cache)
+    print(cache)
+    print(len(cache))
     for c in cache:
-        print c
-    print cache
-    print cache.mtime(46)
+        print(c)
+    print(cache)
+    print(cache.mtime(46))
     for c in cache:
-        print c
+        print(c)

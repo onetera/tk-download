@@ -19,8 +19,8 @@ _version = open("VERSION").read().strip()
 
 if "install" in sys.argv[1:] and \
   not (os.path.isfile("ftputil.html") and os.path.isfile("README.html")):
-    print "One or more of the HTML documentation files are missing."
-    print "Please generate them with `make docs`."
+    print("One or more of the HTML documentation files are missing.")
+    print("Please generate them with `make docs`.")
     sys.exit(1)
 
 core.setup(
