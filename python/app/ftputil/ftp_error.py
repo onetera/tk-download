@@ -12,7 +12,7 @@ import ftplib
 import sys
 import warnings
 
-import ftputil_version
+from . import ftputil_version
 
 
 # You _can_ import these with `from ftp_error import *`, - but

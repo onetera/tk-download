@@ -38,7 +38,7 @@
 import sys
 sys.path.insert(0, "/home/schwa/sd/python/ftputil.add_stat_caching")
 
-import ftputil
+from . import ftputil
 
 
 def main():

@@ -73,6 +73,11 @@ def value_to_str(value):
     if hasattr(QtCore, "QVariant") and isinstance(value, QtCore.QVariant):
         value = value.toPyObject()
 
+    try:
+        unicode
+    except NameError:
+        unicode = str
+        
     if isinstance(value, unicode):
         # encode to str utf-8
         return value.encode("utf-8")

@@ -79,7 +79,7 @@ class StgkStarterApp(Application):
 
         # first, set up our callback, calling out to a method inside the app module contained
         # in the python folder of the app
-            menu_callback = lambda : app_payload.dialog.show_dialog(self)
+            menu_callback = lambda : app_payload.show_dialog(self)
         # now register the command with the engine
             self.engine.register_command("Download", menu_callback)
         except Exception:

@@ -28,7 +28,7 @@ Currently, these deprecated features are examined:
       ...
 """
 
-import ftputil_version
+from . import ftputil_version
 
 import os
 import re

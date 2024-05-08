@@ -41,6 +41,7 @@ discarded. [1]_
 from __future__ import generators
 import time
 from heapq import heappush, heappop, heapify
+import functools
 
 # the suffix after the hyphen denotes modifications by the
 #  ftputil project with respect to the original version
@@ -98,7 +99,7 @@ class LRUCache(object):
     for j in cache:   # iterate (in LRU order)
         print j, cache[j] # iterator produces keys, not values
     """
-
+    @functools.total_ordering
     class __Node(object):
         """Record of a cached value. Not for public consumption."""
 
@@ -110,13 +111,33 @@ class LRUCache(object):
             self.mtime = self.atime
             self._sort_key = sort_key
 
-        def __cmp__(self, other):
-            return cmp(self._sort_key, other._sort_key)
+        # def __cmp__(self, other):
+        #     return cmp(self._sort_key, other._sort_key)
+        
+        def __lt__(self, other):
+            return self._sort_key < other._sort_key
+        
+        def __eq__(self, other):
+            return self._sort_key == other._sort_key
+
+        def __ne__(self, other):
+            return self._sort_key != other._sort_key
+
+        def __gt__(self, other):
+            return self._sort_key > other._sort_key
 
         def __repr__(self):
             return "<%s %s => %s (%s)>" % \
                    (self.__class__, self.key, self.obj, \
                     time.asctime(time.localtime(self.atime)))
+        
+        def __cmp__(self, other):
+            if self.__lt__(other):
+                return -1
+            elif self.__eq__(other):
+                return 0
+            else:
+                return 1
 
     def __init__(self, size=DEFAULT_SIZE):
         # Check arguments

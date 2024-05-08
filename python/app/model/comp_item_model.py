@@ -3,7 +3,7 @@
 import re
 from .task import *
 from .version import *
-from downitempath import *
+from .downitempath import *
 
 '''
 Comp Task 작업에 필요한 데이터를 분리하고 관리

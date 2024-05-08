@@ -13,8 +13,8 @@
 import sgtk
 import os
 import traceback
-import host
-import down
+from . import host
+from . import down
 from pprint import pprint
 import socket
 import sys
@@ -41,17 +41,17 @@ logger = sgtk.platform.get_logger(__name__)
 
 DEBUG = True
 
-def show_dialog(app_instance):
-    """
-    Shows the main dialog window.
-    """
-    # in order to handle UIs seamlessly, each toolkit engine has methods for launching
-    # different types of windows. By using these methods, your windows will be correctly
-    # decorated and handled in a consistent fashion by the system. 
+# def show_dialog(app_instance):
+#     """
+#     Shows the main dialog window.
+#     """
+#     # in order to handle UIs seamlessly, each toolkit engine has methods for launching
+#     # different types of windows. By using these methods, your windows will be correctly
+#     # decorated and handled in a consistent fashion by the system. 
     
-    # we pass the dialog class to this method and leave the actual construction
-    # to be carried out by toolkit.
-    app_instance.engine.show_dialog("Download", app_instance, AppDialog)
+#     # we pass the dialog class to this method and leave the actual construction
+#     # to be carried out by toolkit.
+#     app_instance.engine.show_dialog("Download", app_instance, AppDialog)
 
 
 class AppDialog(QtGui.QWidget):
@@ -229,7 +229,11 @@ class AppDialog(QtGui.QWidget):
         with open(log_path, 'a') as file:
             for log in item:
                 file.write(str(log) + '\n')
-        self._host.upload(log_path,os.path.join(self.ftp_log_path,filename))
+
+        if sys.version_info.major == 2:
+            self._host.upload(log_path, os.path.join(self.ftp_log_path,filename))
+        else:
+            self._host.upload(log_path, os.path.join(self.ftp_log_path,filename), 'b')
 
         
 

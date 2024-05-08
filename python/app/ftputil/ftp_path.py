@@ -8,7 +8,7 @@ ftp_path.py - simulate `os.path` for FTP servers
 import posixpath
 import stat
 
-import ftp_error
+from . import ftp_error
 
 
 # The `_Path` class shouldn't be used directly by clients of the

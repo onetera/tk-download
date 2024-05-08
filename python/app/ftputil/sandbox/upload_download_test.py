@@ -39,7 +39,7 @@ import getpass
 import random
 import sys
 
-import ftputil
+from . import ftputil
 
 
 def login_data():
