@@ -41,6 +41,7 @@ discarded. [1]_
 from __future__ import generators
 import time
 from heapq import heappush, heappop, heapify
+import functools
 
 # the suffix after the hyphen denotes modifications by the
 #  ftputil project with respect to the original version
@@ -98,7 +99,7 @@ class LRUCache(object):
     for j in cache:   # iterate (in LRU order)
         print j, cache[j] # iterator produces keys, not values
     """
-
+    @functools.total_ordering
     class __Node(object):
         """Record of a cached value. Not for public consumption."""
 
@@ -110,13 +111,33 @@ class LRUCache(object):
             self.mtime = self.atime
             self._sort_key = sort_key
 
-        def __cmp__(self, other):
-            return cmp(self._sort_key, other._sort_key)
+        # def __cmp__(self, other):
+        #     return cmp(self._sort_key, other._sort_key)
+        
+        def __lt__(self, other):
+            return self._sort_key < other._sort_key
+        
+        def __eq__(self, other):
+            return self._sort_key == other._sort_key
+
+        def __ne__(self, other):
+            return self._sort_key != other._sort_key
+
+        def __gt__(self, other):
+            return self._sort_key > other._sort_key
 
         def __repr__(self):
             return "<%s %s => %s (%s)>" % \
                    (self.__class__, self.key, self.obj, \
                     time.asctime(time.localtime(self.atime)))
+        
+        def __cmp__(self, other):
+            if self.__lt__(other):
+                return -1
+            elif self.__eq__(other):
+                return 0
+            else:
+                return 1
 
     def __init__(self, size=DEFAULT_SIZE):
         # Check arguments
@@ -145,13 +166,13 @@ class LRUCache(object):
         return len(self.__heap)
 
     def __contains__(self, key):
-        return self.__dict.has_key(key)
+        return key in self.__dict
 
     def __setitem__(self, key, obj):
         if self.size == 0:
             # can't store anything
             return
-        if self.__dict.has_key(key):
+        if key in self.__dict:
             node = self.__dict[key]
             # update node object in-place
             node.obj = obj
@@ -172,7 +193,7 @@ class LRUCache(object):
             heappush(self.__heap, node)
 
     def __getitem__(self, key):
-        if not self.__dict.has_key(key):
+        if key not in self.__dict:
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
@@ -183,7 +204,7 @@ class LRUCache(object):
             return node.obj
 
     def __delitem__(self, key):
-        if not self.__dict.has_key(key):
+        if key not in self.__dict:
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
@@ -224,21 +245,21 @@ class LRUCache(object):
 
 if __name__ == "__main__":
     cache = LRUCache(25)
-    print cache
+    print(cache)
     for i in range(50):
         cache[i] = str(i)
-    print cache
+    print(cache)
     if 46 in cache:
         del cache[46]
-    print cache
+    print(cache)
     cache.size = 10
-    print cache
+    print(cache)
     cache[46] = '46'
-    print cache
-    print len(cache)
+    print(cache)
+    print(len(cache))
     for c in cache:
-        print c
-    print cache
-    print cache.mtime(46)
+        print(c)
+    print(cache)
+    print(cache.mtime(46))
     for c in cache:
-        print c
+        print(c)

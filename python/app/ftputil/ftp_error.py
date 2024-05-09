@@ -12,7 +12,7 @@ import ftplib
 import sys
 import warnings
 
-import ftputil_version
+from . import ftputil_version
 
 
 # You _can_ import these with `from ftp_error import *`, - but
@@ -136,9 +136,9 @@ def _try_with_oserror(callee, *args, **kwargs):
     #  a unicode string with non-ascii characters.
     try:
         return callee(*args, **kwargs)
-    except ftplib.error_temp, exc:
+    except ftplib.error_temp as exc:
         raise TemporaryError(*exc.args)
-    except ftplib.error_perm, exc:
+    except ftplib.error_perm as exc:
         # If `exc.args` is present, assume it's a byte or unicode string.
         if exc.args and exc.args[0].startswith("502"):
             raise CommandNotImplementedError(*exc.args)

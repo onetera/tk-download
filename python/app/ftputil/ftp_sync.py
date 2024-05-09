@@ -16,8 +16,8 @@ Tools for syncing combinations of local and remote directories.
 import os
 import shutil
 
-from ftputil import FTPHost
-import ftp_error
+from .ftputil import FTPHost
+from . import ftp_error
 
 __all__ = ['FTPHost', 'LocalHost', 'Syncer']
 

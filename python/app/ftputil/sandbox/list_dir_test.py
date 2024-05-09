@@ -38,7 +38,7 @@
 import sys
 sys.path.insert(0, "/home/schwa/sd/python/ftputil.add_stat_caching")
 
-import ftputil
+from . import ftputil
 
 
 def main():
@@ -46,17 +46,17 @@ def main():
     ftp_host = ftputil.FTPHost("ftp.de.freebsd.org", 'anonymous',
                                "sschwarzer@sschwarzer.net")
     def onerror(err):
-        print err
+        print(err)
     for top, dirs, nondirs in ftp_host.walk(test_dir, onerror=onerror):
-        print top
-        print "  ", dirs
-        print "  ", nondirs
+        print(top)
+        print("  ", dirs)
+        print("  ", nondirs)
         print
         if top == "pub/FreeBSD/doc/fr_FR.ISO8859-1/books/ppp-primer":
             break
-    print "Stat cache:"
+    print("Stat cache:")
     #print ftp_host.stat_cache
-    print len(ftp_host.stat_cache), "entries in cache"
+    print(len(ftp_host.stat_cache), "entries in cache")
     ftp_host.close()
 
 

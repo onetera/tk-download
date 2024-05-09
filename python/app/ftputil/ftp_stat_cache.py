@@ -7,8 +7,8 @@ ftp_stat_cache.py - cache for (l)stat data
 
 import time
 
-import ftp_error
-import lrucache
+from . import ftp_error
+from . import lrucache
 
 
 # This module shouldn't be used by clients of the ftputil library.

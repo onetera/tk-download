@@ -9,8 +9,8 @@ import re
 import stat
 import time
 
-import ftp_error
-import ftp_stat_cache
+from . import ftp_error
+from . import ftp_stat_cache
 
 
 # These can be used to write custom parsers.
@@ -346,7 +346,7 @@ class MSParser(Parser):
             raise ftp_error.ParserError("line '%s' can't be parsed" % line )
         # st_mode
         #  Default to read access only; in fact, we can't tell.
-        st_mode = 0400
+        st_mode = 0o400
         if dir_or_size == "<DIR>":
             st_mode = st_mode | stat.S_IFDIR
         else:

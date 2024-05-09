@@ -1,6 +1,6 @@
 # :coding: utf-8
 
-from ftputil import ftputil, ftp_error
+from .ftputil import ftputil, ftp_error
 
 # print(ftputil)
 # print(ftp_error)

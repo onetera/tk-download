@@ -205,7 +205,7 @@ class ShotgunDeferredEntityModel(ShotgunExtendedEntityModel):
         Clear the data we hold.
         """
         self._deferred_cache = ShotgunDataHandlerCache()
-        for deferred_model in self._deferred_models.itervalues():
+        for deferred_model in self._deferred_models.values():
             deferred_model.clear()
         self._deferred_models = {}
         super(ShotgunDeferredEntityModel, self).clear()
@@ -214,7 +214,7 @@ class ShotgunDeferredEntityModel(ShotgunExtendedEntityModel):
         """
         Destroy this model and any deferred models attached to it.
         """
-        for deferred_model in self._deferred_models.itervalues():
+        for deferred_model in self._deferred_models.values():
             deferred_model.destroy()
         self._deferred_models = {}
         super(ShotgunDeferredEntityModel, self).destroy()

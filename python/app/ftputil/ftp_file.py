@@ -6,7 +6,7 @@
 ftp_file.py - support for file-like objects on FTP servers
 """
 
-import ftp_error
+from . import ftp_error
 
 
 # This module shouldn't be used by clients of the ftputil library.
@@ -227,7 +227,7 @@ class _FTPFile(object):
             self._session.sock.settimeout(self._close_timeout)
             try:
                 ftp_error._try_with_ioerror(self._session.voidresp)
-            except ftp_error.FTPIOError, exception:
+            except ftp_error.FTPIOError as exception:
                 # Ignore some errors, see tickets #51 and #17 at
                 #  http://ftputil.sschwarzer.net/trac/ticket/51 and
                 #  http://ftputil.sschwarzer.net/trac/ticket/17,

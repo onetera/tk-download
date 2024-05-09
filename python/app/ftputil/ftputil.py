@@ -53,12 +53,12 @@ import sys
 import time
 import warnings
 
-import file_transfer
-import ftp_error
-import ftp_file
-import ftp_path
-import ftp_stat
-import ftputil_version
+from . import file_transfer
+from . import ftp_error
+from . import ftp_file
+from . import ftp_path
+from . import ftp_stat
+from . import ftputil_version
 
 
 __all__ = ['FTPHost']
@@ -824,7 +824,7 @@ class FTPHost(object):
         #  and adapted to ftputil.
         try:
             names = self.listdir(top)
-        except ftp_error.FTPOSError, err:
+        except ftp_error.FTPOSError as err:
             if onerror is not None:
                 onerror(err)
             return
