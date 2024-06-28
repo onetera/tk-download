@@ -103,14 +103,16 @@ class AppDialog(QtGui.QWidget):
             self._host = host.ftpHost(
                 '220.127.148.3',
                 'west_rnd',
-                'rnd2022!'
+                'rnd2022!',
+                64021
             )
         else:
             print("----------------------DEBUG-------------------------")
             self._host = host.ftpHost(
                 '10.0.20.38',
                 'west_rnd',
-                'rnd2022!'
+                'rnd2022!',
+                64021
             )
         # if self._get_ftp_info:
         #     print(self._get_ftp_info['sg_ftp_host'])

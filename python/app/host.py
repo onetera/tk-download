@@ -1,13 +1,20 @@
 # :coding: utf-8
 
 from .ftputil import ftputil, ftp_error
+import ftplib
 
 # print(ftputil)
 # print(ftp_error)
 
 class ftpHost(ftputil.FTPHost):
-    def __init__(self,ftp_host, ftp_user, ftp_pass):
-        ftputil.FTPHost.__init__(self,ftp_host,ftp_user,ftp_pass)
+    def __init__(self,ftp_host, ftp_user, ftp_pass, ftp_port):
+        def my_session_factory(*args, **kwargs):
+            inst = ftplib.FTP()
+            inst.connect(host=ftp_host, port=ftp_port)
+            inst.login(user=ftp_user, passwd=ftp_pass)
+            return inst
+        
+        ftputil.FTPHost.__init__(self, ftp_host, ftp_user, ftp_pass, session_factory=my_session_factory)
 
         try:
             # 연결 상태 확인
