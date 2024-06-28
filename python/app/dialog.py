@@ -15,6 +15,8 @@ import os
 import traceback
 from . import host
 from . import down
+from . import ftputil
+import time
 from pprint import pprint
 import socket
 import sys
@@ -96,24 +98,7 @@ class AppDialog(QtGui.QWidget):
         self._get_ftp_info = self._get_user_ftp_info(self.user['id'])
 
         #ftp 앱을 실행하면 host객체의 접속을 유지한다.
-        print(os.getenv("DEBUG"))
-        if os.getenv( 'WW_LOCATION' ) == 'vietnam' :
-            print("----------------------WW_LOCATION-------------------------")
-            print(os.getenv('WW_LOCATION'))
-            self._host = host.ftpHost(
-                '220.127.148.3',
-                'west_rnd',
-                'rnd2022!',
-                64021
-            )
-        else:
-            print("----------------------DEBUG-------------------------")
-            self._host = host.ftpHost(
-                '10.0.20.38',
-                'west_rnd',
-                'rnd2022!',
-                64021
-            )
+        self.connect_ftp()
         # if self._get_ftp_info:
         #     print(self._get_ftp_info['sg_ftp_host'])
         #     print(self._get_ftp_info['sg_ftp_id'])
@@ -137,6 +122,28 @@ class AppDialog(QtGui.QWidget):
         #         self._get_ftp_info['sg_ftp_id'],
         #         self._get_ftp_info['sg_ftp_password']
         #     )
+
+    def connect_ftp(self, retries=False):
+        print(os.getenv("DEBUG"))
+        if os.getenv( 'WW_LOCATION' ) == 'vietnam' :
+            print("----------------------WW_LOCATION-------------------------")
+            print(os.getenv('WW_LOCATION'))
+            self._host = host.ftpHost(
+                '220.127.148.3',
+                'west_rnd',
+                'rnd2022!',
+                64021,
+                retries
+            )
+        else:
+            print("----------------------DEBUG-------------------------")
+            self._host = host.ftpHost(
+                '10.0.20.38',
+                'west_rnd',
+                'rnd2022!',
+                64021,
+                retries
+            )
 
     def closeEvent(self,event):
         self._host.close()
@@ -181,6 +188,7 @@ class AppDialog(QtGui.QWidget):
         )
         self.ftp_log_path = self._host._get_log_path()
 
+        fail_path_list = []
 
 
         if len(self.item) > 0:
@@ -202,10 +210,32 @@ class AppDialog(QtGui.QWidget):
                 if not os.path.exists(directory_path):
                     os.makedirs(directory_path)
 
+                retry_count = 0
+                max_retries = 5
+
                 if not os.path.exists(result_path) and self._host.path.exists(i[0]):
-                    download = down.Download(result_path,i,self._host)
-                    # if download._result[1] == True:
-                    log_data.append(download._result)
+                    while retry_count < max_retries:
+                        try:
+                            download = down.Download(result_path,i,self._host)
+                            # if download._result[1] == True:
+                            log_data.append(download._result)
+
+                            break
+                        except ftputil.error.TemporaryError as e:
+                            retry_count += 1
+                            if retry_count < max_retries:
+                                log_data.append("TemporaryError encountered: {0}. Retrying {1}/{2}...".format(e, retry_count, max_retries))
+                                log_data.append("'{0}' to '{1}' copy retry".format(result_path, i[0]))
+                                print("Retrying {1}/{2}...".format(e, retry_count, max_retries))
+                                time.sleep(5)
+                                self.connect_ftp(retries=True)
+                            else:
+                                log_data.append("Failed to download after {0} retries. Skipping '{1}'...".format(max_retries, result_path))
+                                print("Failed to download after {0} retries. Skipping '{1}'...".format(max_retries, result_path))
+                                fail_path_list.append(result_path)
+                                
+                                break
+
                 elif not self._host.path.exists(i[0]):
                     pure_file_name = file_name.split('.')[0]
                     
@@ -220,7 +250,12 @@ class AppDialog(QtGui.QWidget):
         print("-----------------------------download end-------------------------")
         log_data.append("=================================================")
         self._ftp_log(log_data)
-        self.msg_box( 'info', 'Download', 'Finished to download' )
+        if fail_path_list:
+            fail_message = 'Finished to download. But skipped Path is exists. \n'
+            fail_message += '\n'.join(fail_path_list)
+            self.msg_box( 'warning', 'Download', fail_message)
+        else:
+            self.msg_box( 'info', 'Download', 'Finished to download' )
 
 
     def _ftp_log(self,item):

@@ -7,7 +7,7 @@ import ftplib
 # print(ftp_error)
 
 class ftpHost(ftputil.FTPHost):
-    def __init__(self,ftp_host, ftp_user, ftp_pass, ftp_port):
+    def __init__(self,ftp_host, ftp_user, ftp_pass, ftp_port, retries=False):
         def my_session_factory(*args, **kwargs):
             inst = ftplib.FTP()
             inst.connect(host=ftp_host, port=ftp_port)
@@ -19,7 +19,10 @@ class ftpHost(ftputil.FTPHost):
         try:
             # 연결 상태 확인
             self.listdir("/")
-            print("westworld ftp server connected!!!")
+            if retries:
+                print("westworld ftp server Reconnected!!!")
+            else:
+                print("westworld ftp server connected!!!")
         except ftp_error.FTPOSError:
             print("westworld ftp server connection failed!!!")
             
